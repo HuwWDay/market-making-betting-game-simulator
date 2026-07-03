@@ -22,8 +22,19 @@ def one_reroll_die_value(sides):
     reroll = [val for val in values if val < mu]
     return {"value": opt, "reroll_faces":reroll}
 
-# Step 3 - pay_per_reroll_die_game (not yet solved)
-# TODO: implement
+# Step 3 - pay_per_reroll_die_game
+def pay_per_reroll_die_game(sides, reroll_cost):
+    V = []
+    for t in range(1, sides + 1):
+        # Calculate expected value for threshold t
+        ev = (t + sides) / 2 - reroll_cost * (t - 1) / (sides - t + 1)
+        V.append(ev)
+    
+    max_value = max(V)
+    # .index() returns the 0-based index, add 1 to get the actual threshold value
+    optimal_threshold = V.index(max_value) + 1 
+    
+    return {'threshold': optimal_threshold, 'value': max_value}
 
 # Step 4 - red_black_card_game_value (not yet solved)
 # TODO: implement
