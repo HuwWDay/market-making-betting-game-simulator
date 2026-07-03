@@ -130,8 +130,31 @@ def uncertainty_spread(base_spread, uncertainty):
     # TODO: choose a spread width that is at least base_spread and increases with uncertainty.
     return base_spread + uncertainty
 
-# Step 10 - inventory_skewed_quotes (not yet solved)
-# TODO: implement
+# Step 10 - inventory_skewed_quotes
+def inventory_skewed_quotes(fair_value, spread_width, inventory, skew_strength):
+    """
+    Computes bid and ask quotes shifted to manage inventory risk.
+    
+    - Positive inventory (long) shifts quotes DOWN to encourage selling/discourage buying.
+    - Negative inventory (short) shifts quotes UP to encourage buying/discourage selling.
+    - Zero inventory or zero skew_strength results in perfectly symmetric quotes.
+    """
+    # Calculate the shift direction and magnitude
+    # A positive inventory results in a negative shift (downward pressure)
+    shift = -inventory * skew_strength
+    
+    # Calculate the skewed midpoint
+    skewed_mid = fair_value + shift
+    
+    # Position the spread symmetrically around the skewed midpoint
+    half_spread = spread_width / 2.0
+    bid = skewed_mid - half_spread
+    ask = skewed_mid + half_spread
+    
+    return {
+        'bid': float(bid),
+        'ask': float(ask)
+    }
 
 # Step 11 - update_fair_value_from_trade (not yet solved)
 # TODO: implement
