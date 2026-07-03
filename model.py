@@ -36,8 +36,43 @@ def pay_per_reroll_die_game(sides, reroll_cost):
     
     return {'threshold': optimal_threshold, 'value': max_value}
 
-# Step 4 - red_black_card_game_value (not yet solved)
-# TODO: implement
+# Step 4 - red_black_card_game_value
+from functools import lru_cache
+
+def red_black_card_game_value(num_red, num_black):
+    @lru_cache(maxsize=None)
+    def V(r, b):
+        # Base cases
+        if r == 0:
+            return 0.0
+        if b == 0:
+            return float(r)
+        
+        # Total remaining cards
+        total = r + b
+        
+        # Expected value if we choose to draw another card:
+        # P(Red) * (1 + V(r-1, b)) + P(Black) * (-1 + V(r, b-1))
+        ev_draw = (r / total) * (1 + V(r - 1, b)) + (b / total) * (-1 + V(r, b - 1))
+        
+        # The player can always stop now and take 0 (or continue if ev_draw > 0)
+        return max(0.0, ev_draw)
+
+    # Calculate the expected payout for the initial state
+    # We evaluate the drawing value first to see if we should stop immediately
+    if num_red == 0:
+        ev_draw = 0.0
+    elif num_black == 0:
+        ev_draw = float(num_red)
+    else:
+        total = num_red + num_black
+        ev_draw = (num_red / total) * (1 + V(num_red - 1, num_black)) + (num_black / total) * (-1 + V(num_red, num_black - 1))
+    
+    # Per the problem description: If ev_draw <= 0, we choose to stop immediately.
+    stop_now = ev_draw <= 0
+    initial_value = max(0.0, ev_draw)
+    
+    return {'value': initial_value, 'stop_now': stop_now}
 
 # Step 5 - make_quotes (not yet solved)
 # TODO: implement
