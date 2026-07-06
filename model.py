@@ -196,8 +196,62 @@ def update_remaining_card_value(remaining_counts, revealed_value):
         'expected_value': expected_val
     }
 
-# Step 13 - run_market_making_episode (not yet solved)
-# TODO: implement
+# Step 13 - run_market_making_episode
+def run_market_making_episode(true_value, counterparty_sides, initial_fair_value, config):
+    # Initialize running state
+    cash = 0.0
+    inventory = 0
+    fair_value = initial_fair_value
+    history = []
+    
+    # Extract config values with defaults of 0
+    base_spread = config.get('base_spread', 0.0)
+    uncertainty = config.get('uncertainty', 0.0)
+    skew_strength = config.get('skew_strength', 0.0)
+    belief_adjustment = config.get('belief_adjustment', 0.0)
+    
+    # Loop over each counterparty action
+    for side in counterparty_sides:
+        # 1. Choose a spread width
+        spread = uncertainty_spread(base_spread, uncertainty)
+        
+        # 2. Generate skewed bid/ask quotes
+        quotes = inventory_skewed_quotes(fair_value, spread, inventory, skew_strength)
+        bid = quotes['bid']
+        ask = quotes['ask']
+        
+        # 3. Execute the counterparty trade
+        current_state = {"cash": cash, "inventory": inventory}
+        new_state = execute_trade(current_state, side, bid, ask)
+        
+        # Update our running cash and inventory tracking variables
+        cash = new_state["cash"]
+        inventory = new_state["inventory"]
+        
+        # 4. Update fair-value belief in the direction of the trade
+        fair_value = update_fair_value_from_trade(fair_value, side, bid, ask, belief_adjustment)
+        
+        # Record the snapshot for this round
+        history.append({
+            'bid': bid,
+            'ask': ask,
+            'side': side,
+            'cash': cash,
+            'inventory': inventory,
+            'fair_value': fair_value
+        })
+        
+    # 5. At the end of the episode, mark to market
+    pnl = mark_to_market_pnl(cash, inventory, true_value)
+    
+    # Return the final state and episode history
+    return {
+        'pnl': pnl,
+        'cash': cash,
+        'inventory': inventory,
+        'fair_value': fair_value,
+        'history': history
+    }
 
 # Step 14 - summarize_episode_pnls (not yet solved)
 # TODO: implement
